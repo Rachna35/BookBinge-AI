@@ -1,0 +1,651 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Book Recommendation System</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body class="bg-gray-100 font-sans">
+    <!-- Header with title and description -->
+    <header class="hero-bg text-white text-center py-16">
+        <h1 class="text-4xl md:text-5xl font-bold mb-4">BookBinge AI</h1>
+        <h2 class="text-lg md:text-xl">AI Book Recommendation System</h2>
+        <p class="text-lg md:text-xl">Answer 4 questions to get personalized book recommendations!</p>
+    </header>
+
+    <!-- Main content area -->
+    <div class="container mx-auto px-4 py-12">
+        <!-- Questionnaire section -->
+        <div class="bg-white rounded-lg shadow-lg p-6 mb-12" id="questionnaire">
+            <h2 class="text-2xl font-semibold text-gray-800 mb-4">Tell Us Your Preferences</h2>
+            <div id="question-container"></div>
+        </div>
+
+        <!-- Recommendations section -->
+        <div class="recommendations" id="recommendations">
+            <h2 class="text-2xl font-semibold text-gray-800 mb-6">Recommended Books</h2>
+            <p class="text-gray-600">Answer the questions to see AI-powered book recommendations.</p>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-gray-800 text-white text-center py-4">
+        <p>© 2025 AI Book Recommendation System. All rights reserved.</p>
+    </footer>
+
+    <script>
+        // --- Data Section ---
+        // Questions for the user to answer
+        const questions = [
+            {
+                id: "genre",
+                text: "Which genre do you prefer to read?",
+                type: "select",
+                options: [
+                    "fiction", "non-fiction", "fantasy", "mythology",
+                    "romance", "thriller", "self-help"
+                ]
+            },
+            {
+                id: "themes",
+                text: "Which themes interest you? (Select all that apply)",
+                type: "checkbox",
+                options: [
+                    "historical   ", "romance    ", "spiritual  ", "adventure  ",
+                    "social issues  ", "mystery  ", "motivation"
+                ]
+            },
+            {
+                id: "mood",
+                text: "What’s your reading mood today?",
+                type: "select",
+                options: [
+                    "light", "thought-provoking", "inspirational"
+                ]
+            },
+            {
+                id: "author",
+                text: "Do you have a preferred author?",
+                type: "select",
+                options: ["No preference"]
+            }
+        ];
+
+        // Book data (7 genres, 4 books each)
+        const books = {
+            fiction: [
+                {
+                    title: "The God of Small Things",
+                    author: "Arundhati Roy",
+                    description: "A poignant tale of love, caste, and family in Kerala.",
+                    year: 1997,
+                    rating: 4.7,
+                    price: 350,
+                    image: "https://covers.openlibrary.org/b/isbn/9780143028574-L.jpg",
+                    buyLink: "https://www.amazon.in/dp/014302857X",
+                    readLink: null,
+                    themes: ["social issues", "romance", "family"],
+                    moodTags: ["thought-provoking"]
+                },
+                {
+                    title: "The White Tiger",
+                    author: "Aravind Adiga",
+                    description: "A dark and humorous take on India's class divide.",
+                    year: 2008,
+                    rating: 4.5,
+                    price: 299,
+                    image: "https://covers.openlibrary.org/b/isbn/9788172238476-L.jpg",
+                    buyLink: "https://www.amazon.in/dp/8172238479",
+                    readLink: null,
+                    themes: ["social issues", "crime"],
+                    moodTags: ["thought-provoking"]
+                },
+                {
+                    title: "Midnight's Children",
+                    author: "Salman Rushdie",
+                    description: "A magical realist saga of India's history.",
+                    year: 1981,
+                    rating: 4.8,
+                    price: 450,
+                    image: "https://covers.openlibrary.org/b/isbn/9780099578512-L.jpg",
+                    buyLink: "https://www.amazon.in/dp/0099578514",
+                    readLink: null,
+                    themes: ["historical", "magical realism"],
+                    moodTags: ["thought-provoking"]
+                },
+                {
+                    title: "A Suitable Boy",
+                    author: "Vikram Seth",
+                    description: "An epic story of love and marriage in post-independence India.",
+                    year: 1993,
+                    rating: 4.6,
+                    price: 550,
+                    image: "https://covers.openlibrary.org/b/isbn/9780140230338-L.jpg",
+                    buyLink: "https://www.amazon.in/dp/0140230335",
+                    readLink: null,
+                    themes: ["romance", "historical"],
+                    moodTags: ["light"]
+                }
+            ],
+            "non-fiction": [
+                {
+                    title: "India After Gandhi",
+                    author: "Ramachandra Guha",
+                    description: "A comprehensive history of modern India.",
+                    year: 2007,
+                    rating: 4.9,
+                    price: 599,
+                    image: "https://covers.openlibrary.org/b/isbn/9789382616979-L.jpg",
+                    buyLink: "https://www.amazon.in/dp/9382616977",
+                    readLink: null,
+                    themes: ["historical", "politics"],
+                    moodTags: ["thought-provoking"]
+                },
+                {
+                    title: "The Discovery of India",
+                    author: "Jawaharlal Nehru",
+                    description: "A historical and philosophical exploration of India's past.",
+                    year: 1946,
+                    rating: 4.7,
+                    price: 399,
+                    image: "https://covers.openlibrary.org/b/isbn/9780143031031-L.jpg",
+                    buyLink: "https://www.amazon.in/dp/0143031031",
+                    readLink: "https://archive.org/details/discoveryofindia0000nehr",
+                    themes: ["historical", "philosophy"],
+                    moodTags: ["thought-provoking"]
+                },
+                {
+                    title: "The Argumentative Indian",
+                    author: "Amartya Sen",
+                    description: "Essays on Indian identity, history, and culture.",
+                    year: 2005,
+                    rating: 4.6,
+                    price: 350,
+                    image: "https://covers.openlibrary.org/b/isbn/9780141012117-L.jpg",
+                    buyLink: "https://www.amazon.in/dp/0141012110",
+                    readLink: null,
+                    themes: ["historical", "culture"],
+                    moodTags: ["thought-provoking"]
+                },
+                {
+                    title: "An Era of Darkness",
+                    author: "Shashi Tharoor",
+                    description: "A critique of British colonial rule in India.",
+                    year: 2016,
+                    rating: 4.8,
+                    price: 499,
+                    image: "https://covers.openlibrary.org/b/isbn/9789383064656-L.jpg",
+                    buyLink: "https://www.amazon.in/dp/938306465X",
+                    readLink: null,
+                    themes: ["historical", "politics"],
+                    moodTags: ["thought-provoking"]
+                }
+            ],
+            fantasy: [
+                {
+                    title: "The Palace of Illusions",
+                    author: "Chitra Banerjee Divakaruni",
+                    description: "A retelling of the Mahabharata from Draupadi's perspective.",
+                    year: 2008,
+                    rating: 4.8,
+                    price: 399,
+                    image: "https://covers.openlibrary.org/b/isbn/9780330458535-L.jpg",
+                    buyLink: "https://www.amazon.in/dp/0330458531",
+                    readLink: null,
+                    themes: ["mythology", "adventure","historical"],
+                    moodTags: ["thought-provoking"]
+                },
+                {
+                    title: "The Immortals of Meluha",
+                    author: "Amish Tripathi",
+                    description: "A mythological adventure of Lord Shiva in ancient India.",
+                    year: 2010,
+                    rating: 4.7,
+                    price: 299,
+                    image: "https://covers.openlibrary.org/b/isbn/9789380658742-L.jpg",
+                    buyLink: "https://www.amazon.in/dp/9380658745",
+                    readLink: null,
+                    themes: ["mythology", "adventure","spiritual"],
+                    moodTags: ["inspirational"]
+                },
+                {
+                    title: "Asura: Tale of the Vanquished",
+                    author: "Anand Neelakantan",
+                    description: "The Ramayana from Ravana's perspective.",
+                    year: 2012,
+                    rating: 4.6,
+                    price: 350,
+                    image: "https://covers.openlibrary.org/b/isbn/9789381576052-L.jpg",
+                    buyLink: "https://www.amazon.in/dp/938157605X",
+                    readLink: null,
+                    themes: ["mythology", "adventure","historical"],
+                    moodTags: ["thought-provoking"]
+                },
+                {
+                    title: "The Oath of the Vayuputras",
+                    author: "Amish Tripathi",
+                    description: "The thrilling conclusion to the Shiva Trilogy.",
+                    year: 2013,
+                    rating: 4.5,
+                    price: 299,
+                    image: "https://covers.openlibrary.org/b/isbn/9789382618348-L.jpg",
+                    buyLink: "https://www.amazon.in/dp/9382618341",
+                    readLink: null,
+                    themes: ["mythology", "adventure","spiritual"],
+                    moodTags: ["inspirational"]
+                }
+            ],
+            mythology: [
+                {
+                    title: "The Ramayana",
+                    author: "Valmiki (tr. R.K. Narayan)",
+                    description: "The epic tale of Lord Rama's journey.",
+                    year: -500,
+                    rating: 4.9,
+                    price: 250,
+                    image: "https://covers.openlibrary.org/b/isbn/9780143039358-L.jpg",
+                    buyLink: "https://www.amazon.in/dp/0143039350",
+                    readLink: "https://archive.org/details/ramayana00valm",
+                    themes: ["mythology", "spiritual","historical"],
+                    moodTags: ["inspirational"]
+                },
+                {
+                    title: "The Mahabharata",
+                    author: "Vyasa (tr. Kamala Subramaniam)",
+                    description: "The epic saga of the Pandavas and Kauravas.",
+                    year: -400,
+                    rating: 4.8,
+                    price: 650,
+                    image: "https://covers.openlibrary.org/b/isbn/9788172763688-L.jpg",
+                    buyLink: "https://www.amazon.in/dp/8172763689",
+                    readLink: "https://archive.org/details/mahabharata00vyas",
+                    themes: ["mythology", "war","historical"],
+                    moodTags: ["thought-provoking"]
+                },
+                {
+                    title: "Jaya: An Illustrated Retelling",
+                    author: "Devdutt Pattanaik",
+                    description: "A modern retelling of the Mahabharata.",
+                    year: 2010,
+                    rating: 4.7,
+                    price: 399,
+                    image: "https://covers.openlibrary.org/b/isbn/9780143104254-L.jpg",
+                    buyLink: "https://www.amazon.in/dp/014310425X",
+                    readLink: null,
+                    themes: ["mythology", "spiritual","historical"],
+                    moodTags: ["inspirational"]
+                },
+                {
+                    title: "Sita: An Illustrated Retelling",
+                    author: "Devdutt Pattanaik",
+                    description: "The Ramayana through Sita's perspective.",
+                    year: 2011,
+                    rating: 4.6,
+                    price: 350,
+                    image: "https://covers.openlibrary.org/b/isbn/9780143064329-L.jpg",
+                    buyLink: "https://www.amazon.in/dp/0143064320",
+                    readLink: null,
+                    themes: ["mythology", "spiritual","historical"],
+                    moodTags: ["inspirational","thought-provoking"]
+                }
+            ],
+            romance: [
+                {
+                    title: "I Too Had a Love Story",
+                    author: "Ravinder Singh",
+                    description: "A heartfelt story of love and loss.",
+                    year: 2008,
+                    rating: 4.5,
+                    price: 199,
+                    image: "https://covers.openlibrary.org/b/isbn/9780143418764-L.jpg",
+                    buyLink: "https://www.amazon.in/dp/0143418769",
+                    readLink: null,
+                    themes: ["romance", "tragedy"],
+                    moodTags: ["light"]
+                },
+                {
+                    title: "Half Girlfriend",
+                    author: "Chetan Bhagat",
+                    description: "A romantic tale of love across cultural divides.",
+                    year: 2014,
+                    rating: 4.3,
+                    price: 250,
+                    image: "https://covers.openlibrary.org/b/isbn/9788129135728-L.jpg",
+                    buyLink: "https://www.amazon.in/dp/8129135728",
+                    readLink: null,
+                    themes: ["romance", "social issues"],
+                    moodTags: ["light"]
+                },
+                {
+                    title: "Can Love Happen Twice?",
+                    author: "Ravinder Singh",
+                    description: "A sequel exploring love after heartbreak.",
+                    year: 2011,
+                    rating: 4.4,
+                    price: 199,
+                    image: "https://covers.openlibrary.org/b/isbn/9780143417231-L.jpg",
+                    buyLink: "https://www.amazon.in/dp/0143417231",
+                    readLink: null,
+                    themes: ["romance", "Social issues"],
+                    moodTags: ["light"]
+                },
+                {
+                    title: "The Girl in Room 105",
+                    author: "Chetan Bhagat",
+                    description: "A romantic mystery set in contemporary India.",
+                    year: 2018,
+                    rating: 4.3,
+                    price: 299,
+                    image: "https://covers.openlibrary.org/b/isbn/9781542040464-L.jpg",
+                    buyLink: "https://www.amazon.in/dp/1542040469",
+                    readLink: null,
+                    themes: ["romance", "mystery"],
+                    moodTags: ["light"]
+                }
+            ],
+            thriller: [
+                {
+                    title: "The Girl in the Glass Case",
+                    author: "Devashish Sardana",
+                    description: "A gripping psychological thriller set in India.",
+                    year: 2021,
+                    rating: 4.4,
+                    price: 299,
+                    image: "https://covers.openlibrary.org/b/isbn/9780143454380-L.jpg",
+                    buyLink: "https://www.amazon.in/dp/0143454382",
+                    readLink: null,
+                    themes: ["mystery", "Social issues"],
+                    moodTags: ["thought-provoking"]
+                },
+                {
+                    title: "The Silent Patient",
+                    author: "Alex Michaelides",
+                    description: "A psychological thriller about a woman who stops speaking.",
+                    year: 2019,
+                    rating: 4.6,
+                    price: 399,
+                    image: "https://covers.openlibrary.org/b/isbn/9781409181637-L.jpg",
+                    buyLink: "https://www.amazon.in/dp/1409181634",
+                    readLink: null,
+                    themes: ["mystery", "Social issues"],
+                    moodTags: ["thought-provoking"]
+                },
+                {
+                    title: "Sacred Games",
+                    author: "Vikram Chandra",
+                    description: "A crime saga set in Mumbai's underworld.",
+                    year: 2006,
+                    rating: 4.5,
+                    price: 499,
+                    image: "https://covers.openlibrary.org/b/isbn/9780143066262-L.jpg",
+                    buyLink: "https://www.amazon.in/dp/0143066269",
+                    readLink: null,
+                    themes: ["mystery", "Adventure"],
+                    moodTags: ["thought-provoking"]
+                },
+                {
+                    title: "The Patient",
+                    author: "Ashish Malpani",
+                    description: "A medical thriller set in an Indian hospital.",
+                    year: 2020,
+                    rating: 4.3,
+                    price: 250,
+                    image: "https://covers.openlibrary.org/b/isbn/9789390441723-L.jpg",
+                    buyLink: "https://www.flipkart.com/patient/p/itm1eabfcb50db74",
+                    readLink: null,
+                    themes: ["mystery", "Adventure"],
+                    moodTags: ["thought-provoking"]
+                }
+            ],
+            "self-help": [
+                {
+                    title: "The Monk Who Sold His Ferrari",
+                    author: "Robin Sharma",
+                    description: "A fable about finding purpose and happiness.",
+                    year: 1997,
+                    rating: 4.6,
+                    price: 299,
+                    image: "https://covers.openlibrary.org/b/isbn/9788179921623-L.jpg",
+                    buyLink: "https://www.amazon.in/dp/817992162X",
+                    readLink: null,
+                    themes: ["motivation", "spiritual"],
+                    moodTags: ["inspirational","thought-provoking"]
+                },
+                {
+                    title: "Think Like a Monk",
+                    author: "Jay Shetty",
+                    description: "Lessons from monastic life for modern success.",
+                    year: 2020,
+                    rating: 4.7,
+                    price: 399,
+                    image: "https://covers.openlibrary.org/b/isbn/9780008386429-L.jpg",
+                    buyLink: "https://www.amazon.in/dp/0008386420",
+                    readLink: null,
+                    themes: ["motivation", "spiritual"],
+                    moodTags: ["inspirational","thought-provoking"]
+                },
+                {
+                    title: "The Power of Your Subconscious Mind",
+                    author: "Joseph Murphy",
+                    description: "A guide to harnessing the mind's potential.",
+                    year: 1963,
+                    rating: 4.5,
+                    price: 250,
+                    image: "https://covers.openlibrary.org/b/isbn/9788194790839-L.jpg",
+                    buyLink: "https://www.amazon.in/dp/8194790832",
+                    readLink: "https://archive.org/details/powerofyoursubco0000murp",
+                    themes: ["motivation", "psychology"],
+                    moodTags: ["inspirational","thought-provoking"]
+                },
+                {
+                    title: "Life’s Amazing Secrets",
+                    author: "Gaur Gopal Das",
+                    description: "Spiritual insights for a balanced life.",
+                    year: 2018,
+                    rating: 4.6,
+                    price: 299,
+                    image: "https://covers.openlibrary.org/b/isbn/9780143442295-L.jpg",
+                    buyLink: "https://www.amazon.in/dp/0143442295",
+                    readLink: null,
+                    themes: ["motivation", "spiritual"],
+                    moodTags: ["inspirational","thought-provoking"]
+                }
+            ]
+        };
+
+        // --- State Variables ---
+        let currentQuestionIndex = 0; // Tracks the current question
+        let userAnswers = {}; // Stores user answers (e.g., {genre: "fiction", themes: ["romance"]})
+
+        // --- Helper Functions ---
+        // Get unique authors for a genre
+        function getAuthorsForGenre(genre) {
+            const authors = [...new Set(books[genre].map(book => book.author))];
+            return ["No preference", ...authors];
+        }
+
+        // --- UI Functions ---
+        // Show a question on the screen with fade-in effect
+        function showQuestion() {
+            const question = questions[currentQuestionIndex];
+            const container = document.getElementById("question-container");
+
+            // Fade out before showing new question
+            container.classList.remove("visible");
+            setTimeout(() => {
+                let html = `<p class="text-lg text-gray-700 mb-4">${question.text}</p>`;
+
+                // Get options (use dynamic authors for author question)
+                let options = question.options;
+                if (question.id === "author" && userAnswers.genre) {
+                    options = getAuthorsForGenre(userAnswers.genre);
+                }
+
+                // Create select dropdown for single-choice questions
+                if (question.type === "select") {
+                    html += `
+                        <select id="${question.id}" class="p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 w-full md:w-1/2">
+                            ${options.map(option => `<option value="${option}">${option}</option>`).join("")}
+                        </select>
+                    `;
+                }
+                // Create checkboxes for multi-choice questions
+                else if (question.type === "checkbox") {
+                    html += `<div class="flex flex-col gap-2">`;
+                    options.forEach(option => {
+                        html += `
+                            <label class="flex items-center">
+                                <input type="checkbox" name="${question.id}" value="${option}" class="mr-2">
+                                <span>${option.charAt(0).toUpperCase() + option.slice(1)}</span>
+                            </label>
+                        `;
+                    });
+                    html += `</div>`;
+                }
+
+                // Add Next or Submit button
+                html += `
+                    <button onclick="saveAnswer()" class="mt-4 bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition duration-300">
+                        ${currentQuestionIndex < questions.length - 1 ? "Next" : "Submit"}
+                    </button>
+                `;
+
+                container.innerHTML = html;
+                container.classList.add("visible"); // Fade in
+            }, 500);
+        }
+
+        // Save the user's answer and move to the next question
+        function saveAnswer() {
+            const question = questions[currentQuestionIndex];
+
+            // Save answer for select questions
+            if (question.type === "select") {
+                userAnswers[question.id] = document.getElementById(question.id).value;
+            }
+            // Save answers for checkbox questions
+            else if (question.type === "checkbox") {
+                const checkboxes = document.querySelectorAll(`input[name="${question.id}"]:checked`);
+                userAnswers[question.id] = Array.from(checkboxes).map(cb => cb.value);
+            }
+
+            // Move to next question or show recommendations
+            currentQuestionIndex++;
+            if (currentQuestionIndex < questions.length) {
+                showQuestion();
+            } else {
+                showRecommendations();
+            }
+        }
+
+        // Show book recommendations based on user answers
+        function showRecommendations() {
+            // Get user answers
+            const genre = userAnswers.genre;
+            const themes = userAnswers.themes || [];
+            const mood = userAnswers.mood;
+            const author = userAnswers.author !== "No preference" ? userAnswers.author : null;
+
+            const recommendationsDiv = document.getElementById("recommendations");
+            document.getElementById("questionnaire").style.display = "none"; // Hide questionnaire
+
+            // Clear previous content
+            recommendationsDiv.innerHTML = `<h2 class="text-2xl font-semibold text-gray-800 mb-6">AI-Recommended Books</h2>`;
+
+            if (books[genre]) {
+                // Score each book based on user answers
+                const scoredBooks = books[genre].map(book => {
+                    let score = 0;
+                    // Add 2 points for each matching theme
+                    themes.forEach(theme => {
+                        if (book.themes.includes(theme)) {
+                            score += 2;
+                        }
+                    });
+                    // Add 1 point for matching mood
+                    if (book.moodTags.includes(mood)) {
+                        score += 1;
+                    }
+                    // Add 3 points for matching author
+                    if (author && book.author === author) {
+                        score += 3;
+                    }
+                    return { ...book, score };
+                });
+
+                // Sort books by score, then rating
+                let recommendedBooks = scoredBooks
+                    .sort((a, b) => b.score === a.score ? b.rating - a.rating : b.score - a.score)
+                    .slice(0, 4); // Show up to 4 books
+
+                // If no matches, show top-rated books
+                if (recommendedBooks.every(book => book.score === 0) && (themes.length > 0 || author)) {
+                    recommendationsDiv.innerHTML += `<p class="text-gray-600">Showing the most relevent Suggestions.</p>`;
+                    recommendedBooks = books[genre].sort((a, b) => b.rating - a.rating).slice(0, 4);
+                }
+
+                // Create grid for book cards
+                const grid = document.createElement("div");
+                grid.className = "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6";
+
+                // Add each book to the grid
+                recommendedBooks.forEach(book => {
+                    const bookCard = document.createElement("div");
+                    bookCard.className = "book-card bg-white rounded-lg shadow-md overflow-hidden";
+                    bookCard.innerHTML = `
+                        <img src="${book.image}" alt="${book.title} cover" class="w-full h-48 object-cover" onerror="this.src='https://via.placeholder.com/300x450?text=${book.themes[0].charAt(0).toUpperCase() + book.themes[0].slice(1)}+Cover';">
+                        <div class="p-4">
+                            <h3 class="text-xl font-semibold text-gray-800">${book.title}</h3>
+                            <p class="text-gray-600"><strong>Author:</strong> ${book.author}</p>
+                            <p class="text-gray-600"><strong>Year:</strong> ${book.year}</p>
+                            <p class="text-gray-600"><strong>Rating:</strong> ${book.rating}/5</p>
+                            <p class="text-gray-600"><strong>Price:</strong> ₹${book.price.toFixed(2)}</p>
+                            <p class="text-gray-500 mt-2">${book.description}</p>
+                            <div class="mt-4 flex gap-2">
+                                <a href="${book.buyLink}" target="_blank" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition duration-300">Buy</a>
+                                ${book.readLink ? `<a href="${book.readLink}" target="_blank" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 transition duration-300">Read Online</a>` : ''}
+                            </div>
+                        </div>
+                    `;
+                    grid.appendChild(bookCard);
+                });
+
+                recommendationsDiv.appendChild(grid);
+
+                // Add Restart button
+                const restartButton = document.createElement("button");
+                restartButton.className = "mt-6 bg-gray-600 text-white px-6 py-2 rounded-lg hover:bg-gray-700 transition duration-300";
+                restartButton.textContent = "Restart Questionnaire";
+                restartButton.onclick = restartQuestionnaire;
+                recommendationsDiv.appendChild(restartButton);
+            } else {
+                recommendationsDiv.innerHTML += `<p class="text-gray-600">No books available for this genre.</p>`;
+            }
+        }
+
+        // Restart the questionnaire
+        function restartQuestionnaire() {
+            // Reset state
+            currentQuestionIndex = 0;
+            userAnswers = {};
+
+            // Show questionnaire
+            document.getElementById("questionnaire").style.display = "block";
+
+            // Reset recommendations section
+            const recommendationsDiv = document.getElementById("recommendations");
+            recommendationsDiv.innerHTML = `
+                <h2 class="text-2xl font-semibold text-gray-800 mb-6">Recommended Books</h2>
+                <p class="text-gray-600">Answer the questions to see AI-powered book recommendations.</p>
+            `;
+
+            // Show first question
+            showQuestion();
+        }
+
+        // --- Start the Application ---
+        showQuestion();
+    </script>
+</body>
+</html>
